@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WebScraper
 {
-    class CacheManager
+    class CacheManager //This class is to temporarily store data, as there is no database.
     {
         #region Singleton Pattern
         private static CacheManager instance = new CacheManager();
