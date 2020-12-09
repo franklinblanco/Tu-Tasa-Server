@@ -9,7 +9,7 @@ using OpenQA.Selenium.Support.UI;
 namespace WebScraper
 {
     class WebScraperManager
-    {
+    { //Class responsible for doing all web-scraping related stuff. 
         #region Singleton Pattern
         private static WebScraperManager instance = new WebScraperManager();
         private WebScraperManager() { }
@@ -20,11 +20,12 @@ namespace WebScraper
         }
         #endregion
 
-        public List<CurrencyRate> DailyScrape()
+        public List<CurrencyRate> DailyScrape() //This method just scrapes all the banks in the array for a the rates, and returns them. 
+            //Called by the CacheManager
         {
-            //create browser obj
 
-            CurrencyRate[] defaultRates = new CurrencyRate[11];
+            CurrencyRate[] defaultRates = new CurrencyRate[11]; //This is where all of the neccesary information for scraping each bank is stored, since
+            //The server has no database yet, these values are hardcoded.
             #region currency rate hardcode
             defaultRates[0] = new CurrencyRate { bankname = "BHDLeon", bankurl = "https://www.bhdleon.com.do/wps/portal/BHD/Inicio", currency = "USD", needclick = true, xpathstocurrency = new string[] { "//*[@id='TasasDeCambio']/table/tbody/tr[2]/td[2]", "//*[@id='TasasDeCambio']/table/tbody/tr[2]/td[3]" }, xpathtoclick = "//*[@id='footer']/section[2]/div/ul/li[5]/a" };
             defaultRates[1] = new CurrencyRate { bankname = "Popular", bankurl = "https://www.popularenlinea.com/", currency = "USD", needclick = false, xpathstocurrency = new string[] { "//*[@id='compra_peso_dolar_desktop']", "//*[@id='venta_peso_dolar_desktop']" }, xpathtoclick = "", currencyisinputfield = true };
@@ -45,7 +46,8 @@ namespace WebScraper
             }
             return FinishedRates;
         }
-        public CurrencyRate ScrapeCurrencyRate(CurrencyRate currencyRate)
+        public CurrencyRate ScrapeCurrencyRate(CurrencyRate currencyRate) //This is the method that does the hard work. 
+            //It goes to each website and simulates user interactions to get values.
         {
             try
             {
@@ -57,7 +59,7 @@ namespace WebScraper
 
                     if (currencyRate.needclick)
                     {
-                        //wait before clicking
+                        //wait before clicking (Explicitly)
                         var wait = new WebDriverWait(browserdriver, TimeSpan.FromSeconds(3));
                         wait.Until(drv => drv.FindElement(By.XPath(currencyRate.xpathtoclick))).Click();
                         //var buttontoclick = browserdriver.FindElement(By.XPath(currencyRate.xpathtoclick));
@@ -66,7 +68,8 @@ namespace WebScraper
 
                     string[] currencyrates = new string[2];
 
-                    if (currencyRate.currencyisinputfield)
+                    if (currencyRate.currencyisinputfield) //Self explanatory, but this basically checks if it is an input field so that it gets the "Value" instead of 
+                        //the "Text" which would give an exception.
                     {
                         if (currencyRate.currencyisplaceholder)
                         {
@@ -74,7 +77,7 @@ namespace WebScraper
                             currencyRate.sellrate = browserdriver.FindElement(By.XPath(currencyRate.xpathstocurrency[1])).GetAttribute("placeholder");
 
                         }
-                        else
+                        else //Differentiate between input placeholder & value
                         {
                             currencyRate.buyrate = browserdriver.FindElement(By.XPath(currencyRate.xpathstocurrency[0])).GetAttribute("value");
                             currencyRate.sellrate = browserdriver.FindElement(By.XPath(currencyRate.xpathstocurrency[1])).GetAttribute("value");
@@ -124,7 +127,7 @@ namespace WebScraper
             
         }
 
-        public string TrimString(string stringtotrim)
+        public string TrimString(string stringtotrim) //format method to remove all common letters, characters, and signs used in currencies, to get the numbers.
         {
             return stringtotrim.Trim(' ', 'D', 'O', 'P', 'R', 'D', '$', 'C', 'm', 'a', 'V', 'e', 'n', 't', 'o', 'p', 'r', ':', 'U', 'S', 'D');
         }
