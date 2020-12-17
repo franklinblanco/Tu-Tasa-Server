@@ -24,6 +24,7 @@ namespace WebScraper
         }
         public void UpdateCache()
         {
+            BankRates.Clear();
             List<CurrencyRate> currencyRates = WebScraperManager.Instance.DailyScrape();
             foreach (CurrencyRate rate in currencyRates)
             {
