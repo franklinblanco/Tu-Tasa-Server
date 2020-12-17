@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace WebScraper
 {
@@ -33,6 +34,7 @@ namespace WebScraper
 
         public void InitializeServer()
         {
+            UpdateFunction();
             StartServer();
         }
 
@@ -51,6 +53,16 @@ namespace WebScraper
                 ServerThread = new Thread(() => EstablishConnection(connectionSocket));
                 ServerThread.Start();
             }
+        }
+        private async void UpdateFunction()
+        {
+            while (true)
+            {
+                await Task.Delay(TimeSpan.FromHours(6)); //perform a check after every 6 hours
+                Console.WriteLine("Performing timely update to the currencies.");
+                CacheManager.Instance.UpdateCache();
+            }
+            
         }
         private void OpenSocket()
         {

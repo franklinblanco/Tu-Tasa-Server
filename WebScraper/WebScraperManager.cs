@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
@@ -42,7 +43,9 @@ namespace WebScraper
             List<CurrencyRate> FinishedRates = new List<CurrencyRate>();
             foreach (CurrencyRate rate in defaultRates)
             {
-                FinishedRates.Add(ScrapeCurrencyRate(rate));
+                CurrencyRate scrapedRate = ScrapeCurrencyRate(rate);
+                if (scrapedRate.buyrate == "ERROR" || scrapedRate.sellrate == "ERROR") { ScrapeAgainLater(rate); }
+                FinishedRates.Add(rate);
             }
             return FinishedRates;
         }
@@ -120,11 +123,23 @@ namespace WebScraper
                 return currencyRate;
             } catch (Exception e)
             {
-                Console.WriteLine("Exception occurred in a scraping. Sending null value, Trying again Later.");
+                Console.WriteLine("Exception occurred in a scraping. Sending Empty value, Trying again Later.");
                 Console.WriteLine(e.ToString());
                 return currencyRate;
             }
             
+        }
+        private async void ScrapeAgainLater(CurrencyRate Rate)
+        {
+            CurrencyRate rate = Rate;
+            while (rate.buyrate == "ERROR" || rate.sellrate == "ERROR")
+            {
+                Console.WriteLine("Unsuccesful scrape. Trying again in 15 mins...");
+                await Task.Delay(TimeSpan.FromMinutes(15)); //every 15 mins, try again
+                rate = ScrapeCurrencyRate(rate);
+            }
+            CacheManager.Instance.BankRates[rate.bankname] = rate;
+            Console.WriteLine("Cache Updated correctly with the currency rate: " + rate.bankname);
         }
 
         public string TrimString(string stringtotrim) //format method to remove all common letters, characters, and signs used in currencies, to get the numbers.
